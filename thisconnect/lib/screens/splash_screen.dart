@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   void checkIsIntroductedandLogin() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    //await prefs.clear();
     isIntroducted = prefs.getBool('isIntroducted') ?? false;
     await getPrefUserInformation();
     if (user != null) {

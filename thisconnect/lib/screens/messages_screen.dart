@@ -72,9 +72,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           ),
                         ],
                       ),
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: Image.network(tempUser.avatarUrl!),
+                      leading: ClipOval(
+                        child: Image.network(
+                          tempUser.avatarUrl!,
+                          width: 55.0,
+                          height: 55.0,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       subtitle: Expanded(
                         child: FutureBuilder<Message>(
