@@ -149,6 +149,7 @@ class _QRListScreenState extends State<QRListScreen> {
     if (temp != null) {
       setState(() {
         user = User(
+          avatarUrl: temp.avatarUrl,
           userId: temp.userId,
           phone: temp.phone,
           email: temp.email,

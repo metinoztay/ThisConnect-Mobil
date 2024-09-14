@@ -102,6 +102,7 @@ class _MainScreenState extends State<MainScreen> {
           name: temp.name,
           surname: temp.surname,
           lastSeenAt: temp.lastSeenAt,
+          avatarUrl: temp.avatarUrl,
         );
       });
     }

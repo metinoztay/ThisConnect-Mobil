@@ -172,6 +172,7 @@ class ApiHandler {
           title: jsonData['title'],
           name: jsonData['name'],
           surname: jsonData['surname'],
+          avatarUrl: jsonData['avatarUrl'],
           lastSeenAt: jsonData['lastSeenAt'],
         );
       } else {
@@ -309,6 +310,7 @@ class ApiHandler {
           title: json['title'],
           name: json['name'],
           surname: json['surname'],
+          avatarUrl: json['avatarUrl'],
           lastSeenAt: json['lastSeenAt'],
         );
 

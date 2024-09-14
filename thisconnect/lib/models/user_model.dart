@@ -7,7 +7,7 @@ class User {
   String title;
   String name;
   String surname;
-  String? avatarUrl;
+  String avatarUrl;
   String lastSeenAt;
 
   User({
@@ -17,7 +17,7 @@ class User {
     required this.title,
     required this.name,
     required this.surname,
-    this.avatarUrl,
+    required this.avatarUrl,
     required this.lastSeenAt,
   });
 
