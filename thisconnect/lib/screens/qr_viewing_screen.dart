@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:thisconnect/models/qr_model.dart';
 import 'package:thisconnect/services/api_handler.dart';
+import 'package:thisconnect/services/pdf_service.dart';
 
 class QRViewingScreen extends StatefulWidget {
   final String qrId;
@@ -237,7 +239,7 @@ class _QRViewingScreenState extends State<QRViewingScreen> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      Navigator.pop(context);
+                                      downloadQrPdf();
                                     },
                                     child: const Icon(Icons.download,
                                         color: Colors.white),
@@ -250,7 +252,7 @@ class _QRViewingScreenState extends State<QRViewingScreen> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      Navigator.pop(context);
+                                      shareQr();
                                     },
                                     child: const Icon(Icons.share,
                                         color: Colors.white),
@@ -377,6 +379,24 @@ class _QRViewingScreenState extends State<QRViewingScreen> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> downloadQrPdf() async {
+    try {
+      await PdfService.downloadPDF(widget.qrId);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void shareQr() async {
+    final filePath = await PdfService.downloadPDF(widget.qrId);
+    if (filePath != null) {
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        text: "ThisConnect! QR code",
+      );
     }
   }
 }

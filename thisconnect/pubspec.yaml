@@ -44,6 +44,10 @@ dependencies:
   otp_timer_button: ^1.1.1
   mobile_scanner: ^5.2.3
   qr_flutter: ^4.1.0
+  path_provider: ^2.1.4
+  permission_handler: ^11.3.1
+  open_file: ^3.5.3
+  share_plus: ^10.0.0
 
 dev_dependencies:
   flutter_test:
