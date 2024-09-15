@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:thisconnect/models/attachment_model.dart';
 import 'package:thisconnect/models/chatroom_model.dart';
 import 'package:thisconnect/models/message_model.dart';
 import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/services/message.service.dart';
+import 'package:thisconnect/services/upload_service.dart';
 import 'package:thisconnect/services/user_service.dart';
 import 'package:thisconnect/utils/removeMessageExtraChar.dart';
 import 'package:thisconnect/widgets/chatMessageListWidget.dart';
@@ -55,10 +58,18 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> submitMessageFunction() async {
+  Future<void> submitMessageFunction(File? attach) async {
     if (reciever == null) {
       return;
     }
+
+    Attachment? attachment;
+    if (attach != null) {
+      attachment = await UploadService.uploadFile(widget.user.userId, attach);
+    } else {
+      attachment = null;
+    }
+
     var messageText = removeMessageExtraChar(messageTextController.text);
 
     var message = {
@@ -66,11 +77,26 @@ class _ChatScreenState extends State<ChatScreen> {
       'ChatRoomId': widget.chatRoom.chatRoomId,
       'SenderUserId': widget.user.userId,
       'RecieverUserId': reciever!.userId,
-      'AttachmentId': '',
+      'AttachmentId': null,
       'Content': messageText,
       'CreatedAt': "",
       'ReadedAt': '',
     };
+
+    if (attachment != null) {
+      var fileMessage = {
+        'MessageId': '',
+        'ChatRoomId': widget.chatRoom.chatRoomId,
+        'SenderUserId': widget.user.userId,
+        'RecieverUserId': reciever!.userId,
+        'AttachmentId': attachment.attachmentId,
+        'Content': attachment.fileName,
+        'CreatedAt': "",
+        'ReadedAt': '',
+      };
+
+      await connection.invoke('SendMessage', args: [fileMessage]);
+    }
 
     await connection.invoke('SendMessage', args: [message]);
 
@@ -134,8 +160,11 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             chatMessageWidget(chatListScrollController, messages,
                 widget.user.userId, context),
-            chatTypeMessageWidget(
-                messageTextController, submitMessageFunction, isMessageEmpty),
+            ChatTypeMessageWidget(
+              messageTextController: messageTextController,
+              submitMessageFunction: submitMessageFunction,
+              isMessageEmpty: isMessageEmpty,
+            ),
           ],
         ),
       ),
