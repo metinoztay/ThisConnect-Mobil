@@ -1,13 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/screens/main_screen.dart';
-import 'package:thisconnect/services/api_handler.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/user_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -234,6 +230,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       lastSeenAt: "",
     );
 
-    await ApiHandler.createUser(user);
+    await UserService.createUser(user);
   }
 }

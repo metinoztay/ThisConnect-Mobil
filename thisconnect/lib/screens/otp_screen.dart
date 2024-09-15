@@ -1,16 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:otp_timer_button/otp_timer_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thisconnect/models/otp_model.dart';
 import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/screens/main_screen.dart';
 import 'package:thisconnect/screens/signup_screen.dart';
-import 'package:thisconnect/services/api_handler.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/otp_service.dart';
+import 'package:thisconnect/services/pref_service.dart';
 
 class OTPScreen extends StatefulWidget {
   const OTPScreen({super.key, required this.phoneNumber});
@@ -88,7 +85,7 @@ class _OTPScreenState extends State<OTPScreen> {
                 await otpVerification(
                     Otp(phone: widget.phoneNumber, otpValue: verificationCode));
                 if (user != null) {
-                  PrefHandler.savePrefUserInformation(user!);
+                  PrefService.savePrefUserInformation(user!);
                   Navigator.of(context).pushReplacement(MaterialPageRoute(
                     builder: (_) => const MainScreen(),
                   ));
@@ -137,7 +134,7 @@ class _OTPScreenState extends State<OTPScreen> {
   }
 
   Future<void> otpVerification(Otp otp) async {
-    var response = await ApiHandler.otpVerification(otp);
+    var response = await OtpService.otpVerification(otp);
     setState(() {
       user = response;
     });

@@ -1,21 +1,12 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:thisconnect/models/qr_model.dart';
-import 'package:thisconnect/models/user_model.dart';
-import 'package:thisconnect/screens/chat_screen.dart';
 import 'package:thisconnect/screens/help_screen.dart';
 import 'package:thisconnect/screens/home_screen.dart';
 import 'package:thisconnect/screens/login_screen.dart';
 import 'package:thisconnect/screens/main_screen.dart';
-import 'package:thisconnect/screens/messages_screen.dart';
 import 'package:thisconnect/screens/onboarding_screen.dart';
 import 'package:thisconnect/screens/profile_menu_screen.dart';
 import 'package:thisconnect/screens/profile_screen.dart';
 import 'package:thisconnect/screens/qr_list_screen.dart';
-import 'package:thisconnect/screens/qr_result_screen.dart';
-import 'package:thisconnect/screens/qr_scanner_screen.dart';
-import 'package:thisconnect/services/pref_handler.dart';
 import 'screens/splash_screen.dart';
 
 void main() {

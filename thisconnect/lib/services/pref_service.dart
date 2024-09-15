@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thisconnect/models/user_model.dart';
-import 'package:thisconnect/services/api_handler.dart';
+import 'package:thisconnect/services/user_service.dart';
 
-class PrefHandler {
+class PrefService {
   static Future<bool> savePrefUserInformation(User user) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(user.toJson()).toString());
@@ -27,7 +27,7 @@ class PrefHandler {
   }
 
   static Future<bool> updatePrefUserInformation(String userId) async {
-    final User user = await ApiHandler.getUserInformation(userId);
+    final User user = await UserService.getUserInformation(userId);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(user.toJson()).toString());
     return true;

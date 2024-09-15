@@ -2,9 +2,10 @@ import 'package:thisconnect/models/chatroom_model.dart';
 import 'package:thisconnect/models/message_model.dart';
 import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/screens/chat_screen.dart';
-import 'package:thisconnect/services/api_handler.dart';
 import 'package:flutter/material.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/chatroom_service.dart';
+import 'package:thisconnect/services/message.service.dart';
+import 'package:thisconnect/services/user_service.dart';
 
 class MessagesScreen extends StatefulWidget {
   final User user;
@@ -19,10 +20,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
     super.initState();
-    //getPrefUserInformation();
-    ApiHandler.updateLastSeenAt(widget.user.userId);
+    UserService.updateLastSeenAt(widget.user.userId);
     getChatRoomsByParticipant(widget.user.userId);
-    //readUsers();
   }
 
   @override
@@ -59,11 +58,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              tempUser.title +
-                                  " " +
-                                  tempUser.name +
-                                  " " +
-                                  tempUser.surname,
+                              "${tempUser.title} ${tempUser.name} ${tempUser.surname}",
                               textAlign: TextAlign.left,
                               style: const TextStyle(
                                 fontSize: 18,
@@ -74,7 +69,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       ),
                       leading: ClipOval(
                         child: Image.network(
-                          tempUser.avatarUrl!,
+                          tempUser.avatarUrl,
                           width: 55.0,
                           height: 55.0,
                           fit: BoxFit.cover,
@@ -91,8 +86,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             if (snapshot.hasData) {
                               return Text(
                                 snapshot.data!.content.length > 20
-                                    ? snapshot.data!.content.substring(0, 20) +
-                                        '...'
+                                    ? '${snapshot.data!.content.substring(0, 20)}...'
                                     : snapshot.data!.content,
                                 style: const TextStyle(
                                   color: Colors.grey,
@@ -120,7 +114,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Future<void> getChatRoomsByParticipant(String userId) async {
-    final results = await ApiHandler.getChatRoomsByParticipant(userId);
+    final results = await ChatroomService.getChatRoomsByParticipant(userId);
 
     setState(() {
       chatRooms.clear();
@@ -129,12 +123,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Future<User> getUserInformation(String userId) async {
-    final result = await ApiHandler.getUserInformation(userId);
+    final result = await UserService.getUserInformation(userId);
     return result;
   }
 
   Future<Message> getLastMessage(String messageId) async {
-    final result = await ApiHandler.getMessageByMessageId(messageId);
+    final result = await MessageService.getMessageByMessageId(messageId);
     return result;
   }
 }

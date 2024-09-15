@@ -3,8 +3,8 @@ import 'package:thisconnect/models/chatroom_model.dart';
 import 'package:thisconnect/models/qr_model.dart';
 import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/screens/chat_screen.dart';
-import 'package:thisconnect/services/api_handler.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/chatroom_service.dart';
+import 'package:thisconnect/services/qr_service.dart';
 
 class QRResultScreen extends StatefulWidget {
   final String qrCodeId;
@@ -65,7 +65,7 @@ class _QRResultScreenState extends State<QRResultScreen> {
                     height: 120,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(100),
-                      child: Image.network(_qrInformation.user.avatarUrl!),
+                      child: Image.network(_qrInformation.user.avatarUrl),
                     ),
                   ),
                   const SizedBox(
@@ -230,7 +230,7 @@ class _QRResultScreenState extends State<QRResultScreen> {
 
   Future<void> getQRResult() async {
     try {
-      final result = await ApiHandler.getQRInformation(widget.qrCodeId);
+      final result = await QrService.getQRInformation(widget.qrCodeId);
 
       setState(() {
         _qrInformation = result;
@@ -246,7 +246,7 @@ class _QRResultScreenState extends State<QRResultScreen> {
 
   Future<bool> createChatRoom() async {
     try {
-      final result = await ApiHandler.createChatRoom(
+      final result = await ChatroomService.createChatRoom(
         ChatRoom(
           participant1Id: _qrInformation.userId,
           participant2Id: widget.user.userId,
@@ -265,7 +265,7 @@ class _QRResultScreenState extends State<QRResultScreen> {
 
   Future<void> findChatRoom() async {
     try {
-      final result = await ApiHandler.findChatRoom(
+      final result = await ChatroomService.findChatRoom(
         ChatRoom(
           participant1Id: widget.user.userId,
           participant2Id: _qrInformation.user.userId,

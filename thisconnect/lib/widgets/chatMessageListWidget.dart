@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:thisconnect/models/messageModel.dart';
 import 'package:thisconnect/models/message_model.dart';
 
 Widget chatMessageWidget(ScrollController chatListScrollController,
@@ -31,9 +30,9 @@ Widget chatItemWidget(Message e, String currentUserId, BuildContext context) {
   final color = isMe ? Colors.green : Colors.blue;
 
   final textColor = Colors.white;
-  bool isMyChat = e.senderUserId == currentUserId;
+  //bool isMyChat = e.senderUserId == currentUserId;
   return e.senderUserId == 0
-      ? systemMessageWidget(e.content!)
+      ? systemMessageWidget(e.content)
       : Align(
           alignment: alignment,
           child: Container(
@@ -45,7 +44,7 @@ Widget chatItemWidget(Message e, String currentUserId, BuildContext context) {
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Text(
-              e.content ?? '',
+              e.content,
               style: TextStyle(color: textColor),
             ),
           ),
@@ -129,8 +128,8 @@ Widget messageTextAndName(bool isMyChat, String messageText, String userName) {
   ));
 }
 
-Widget messageTime(bool isMyChat, MessageModel e) {
-  var parsedDate = DateTime.parse(e.createDate!);
+Widget messageTime(bool isMyChat, Message e) {
+  var parsedDate = DateTime.parse(e.createdAt);
   var timeText =
       "${parsedDate.hour} : ${parsedDate.minute.toString().padLeft(2, '0')}";
   return Container(

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:thisconnect/models/qr_model.dart';
 import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/screens/qr_viewing_screen.dart';
-import 'package:thisconnect/services/api_handler.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/pref_service.dart';
+import 'package:thisconnect/services/qr_service.dart';
+import 'package:thisconnect/services/user_service.dart';
 
 class QRListScreen extends StatefulWidget {
   const QRListScreen({super.key});
@@ -145,7 +146,7 @@ class _QRListScreenState extends State<QRListScreen> {
   }
 
   Future<void> getPrefUserInformation() async {
-    var temp = await PrefHandler.getPrefUserInformation();
+    var temp = await PrefService.getPrefUserInformation();
     if (temp != null) {
       setState(() {
         user = User(
@@ -166,7 +167,7 @@ class _QRListScreenState extends State<QRListScreen> {
   Future<void> loadQRList() async {
     _qrList.clear();
     if (user != null) {
-      final results = await ApiHandler.getUsersQRList(user!.userId);
+      final results = await QrService.getUsersQRList(user!.userId);
       setState(() {
         if (results != null) {
           _qrList = results;
@@ -177,7 +178,7 @@ class _QRListScreenState extends State<QRListScreen> {
 
   Future<void> addQR() async {
     if (user != null) {
-      final results = await ApiHandler.addQR(
+      await QrService.addQR(
         QR(
             qrId: "test",
             userId: user!.userId,
@@ -188,7 +189,7 @@ class _QRListScreenState extends State<QRListScreen> {
             note: "Note",
             createdAt: DateTime.now().toString(),
             isActive: true,
-            user: await ApiHandler.getUserInformation(user!.userId)),
+            user: await UserService.getUserInformation(user!.userId)),
       );
 
       setState(() {

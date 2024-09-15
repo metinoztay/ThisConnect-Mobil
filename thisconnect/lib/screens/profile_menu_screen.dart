@@ -1,6 +1,6 @@
 import 'package:thisconnect/models/profileitem.dart';
 import 'package:flutter/material.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/pref_service.dart';
 
 class ProfileMenuScreen extends StatefulWidget {
   const ProfileMenuScreen({super.key});
@@ -56,7 +56,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                             );
                           });
                       if (result ?? false) {
-                        await PrefHandler.removePrefUserInformation();
+                        await PrefService.removePrefUserInformation();
                         Navigator.pushReplacementNamed(context, '/login');
                       }
                     } else {

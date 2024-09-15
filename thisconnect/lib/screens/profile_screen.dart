@@ -4,8 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thisconnect/models/user_model.dart';
-import 'package:thisconnect/services/api_handler.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/pref_service.dart';
 import 'package:thisconnect/services/upload_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,9 +13,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  XFile? _image;
   final ImagePicker _picker = ImagePicker();
-  bool _isUploading = false;
   User? _user;
 
   @override
@@ -157,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           await UploadService.uploadProfilePhoto(_user!.userId, file);
 
           // Kullanıcı bilgilerini güncelleyin
-          await PrefHandler.updatePrefUserInformation(userId);
+          await PrefService.updatePrefUserInformation(userId);
           _loadUserInformation(); // Kullanıcı bilgilerini tekrar yükleyin
 
           ScaffoldMessenger.of(context).showSnackBar(

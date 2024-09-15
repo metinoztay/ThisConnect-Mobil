@@ -4,7 +4,7 @@ import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/screens/messages_screen.dart';
 import 'package:thisconnect/screens/profile_menu_screen.dart';
 import 'package:thisconnect/screens/qr_scanner_screen.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/pref_service.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -91,7 +91,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> getPrefUserInformation() async {
-    var temp = await PrefHandler.getPrefUserInformation();
+    var temp = await PrefService.getPrefUserInformation();
     if (temp != null) {
       setState(() {
         user = User(

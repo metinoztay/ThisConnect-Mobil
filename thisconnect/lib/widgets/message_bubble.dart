@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:thisconnect/models/messageModel.dart';
+import 'package:thisconnect/models/message_model.dart';
 
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
@@ -8,14 +8,14 @@ class MessageBubble extends StatelessWidget {
     required this.currentUserId,
   });
 
-  final MessageModel message;
+  final Message message;
   final String currentUserId;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    final isMe = message.userId == currentUserId;
+    final isMe = message.senderUserId == currentUserId;
 
     final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
 
@@ -34,7 +34,7 @@ class MessageBubble extends StatelessWidget {
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: Text(
-          message.messageText ?? '',
+          message.content,
           style: TextStyle(color: textColor),
         ),
       ),

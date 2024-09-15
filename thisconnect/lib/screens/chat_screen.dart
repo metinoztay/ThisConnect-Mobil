@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:thisconnect/models/chatroom_model.dart';
 import 'package:thisconnect/models/message_model.dart';
 import 'package:thisconnect/models/user_model.dart';
-import 'package:thisconnect/services/api_handler.dart';
+import 'package:thisconnect/services/message.service.dart';
+import 'package:thisconnect/services/user_service.dart';
 import 'package:thisconnect/utils/removeMessageExtraChar.dart';
 import 'package:thisconnect/widgets/chatMessageListWidget.dart';
 import 'package:signalr_core/signalr_core.dart';
@@ -102,7 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             ClipOval(
               child: Image.network(
-                reciever!.avatarUrl!,
+                reciever!.avatarUrl,
                 width: 50.0,
                 height: 50.0,
                 fit: BoxFit.cover,
@@ -174,7 +174,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> getOldMessages() async {
     try {
-      final List<Message>? results = await ApiHandler.getMessagesByChatRoomId(
+      final List<Message>? results =
+          await MessageService.getMessagesByChatRoomId(
         widget.chatRoom.chatRoomId,
       );
       if (results != null) {
@@ -215,7 +216,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> getUserInformation() async {
     try {
-      final receiverTemp = await ApiHandler.getUserInformation(
+      final receiverTemp = await UserService.getUserInformation(
         widget.user.userId == widget.chatRoom.participant1Id
             ? widget.chatRoom.participant2Id
             : widget.chatRoom.participant1Id,
@@ -231,7 +232,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _handleErrorMessage(List<dynamic>? args) async {
     if (args != null && args.isNotEmpty) {
       var errorMessage = args[0] as String;
-      // Hata mesajını göstermek için bir snackbar veya dialog kullanabilirsin
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: $errorMessage")),

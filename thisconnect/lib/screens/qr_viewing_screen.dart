@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thisconnect/models/qr_model.dart';
-import 'package:thisconnect/services/api_handler.dart';
 import 'package:thisconnect/services/pdf_service.dart';
+import 'package:thisconnect/services/qr_service.dart';
 
 class QRViewingScreen extends StatefulWidget {
   final String qrId;
@@ -54,285 +54,280 @@ class _QRViewingScreenState extends State<QRViewingScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _qrInformation == null
-              ? const Center(child: Text("No data found."))
-              : SafeArea(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              QrImageView(
-                                data: widget.qrId,
-                                size: 150,
-                                version: QrVersions.auto,
-                              ),
-                              ListTile(
-                                title: Row(
-                                  children: [
-                                    const Text(
-                                      "Title: ",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.black87,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1),
-                                    ),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onDoubleTap: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: const Text('Edit Title'),
-                                                content: TextField(
-                                                  controller:
-                                                      TextEditingController(
-                                                          text: title),
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      title = value;
-                                                    });
-                                                  },
-                                                ),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    child: const Text('Save'),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: Text(
-                                          title,
-                                          textAlign: TextAlign.right,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.black87,
-                                              letterSpacing: 1),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SwitchListTile(
-                                inactiveTrackColor: Colors.red.shade100,
-                                inactiveThumbColor: Colors.red,
-                                value: isActive,
-                                activeColor: Colors.green,
-                                activeTrackColor: Colors.green.shade100,
-                                onChanged: (value) {
-                                  setState(() {
-                                    isActive = value;
-                                  });
-                                },
-                                title: const Text(
-                                  'Active',
+          : SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          QrImageView(
+                            data: widget.qrId,
+                            size: 150,
+                            version: QrVersions.auto,
+                          ),
+                          ListTile(
+                            title: Row(
+                              children: [
+                                const Text(
+                                  "Title: ",
                                   style: TextStyle(
                                       fontSize: 16,
+                                      color: Colors.black87,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1),
                                 ),
-                              ),
-                              SwitchListTile(
-                                inactiveTrackColor: Colors.red.shade100,
-                                inactiveThumbColor: Colors.red,
-                                value: shareEmail,
-                                activeColor: Colors.green,
-                                activeTrackColor: Colors.green.shade100,
-                                onChanged: (value) {
-                                  setState(() {
-                                    shareEmail = value;
-                                  });
-                                },
-                                title: const Text(
-                                  'Share Email',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1),
-                                ),
-                              ),
-                              SwitchListTile(
-                                inactiveTrackColor: Colors.red.shade100,
-                                inactiveThumbColor: Colors.red,
-                                value: sharePhone,
-                                activeColor: Colors.green,
-                                activeTrackColor: Colors.green.shade100,
-                                onChanged: (value) {
-                                  setState(() {
-                                    sharePhone = value;
-                                  });
-                                },
-                                title: const Text(
-                                  'Share Phone',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1),
-                                ),
-                              ),
-                              SwitchListTile(
-                                inactiveTrackColor: Colors.red.shade100,
-                                inactiveThumbColor: Colors.red,
-                                value: shareNote,
-                                activeColor: Colors.green,
-                                activeTrackColor: Colors.green.shade100,
-                                onChanged: (value) {
-                                  setState(() {
-                                    shareNote = value;
-                                  });
-                                },
-                                title: const Text(
-                                  'Share Note',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1),
-                                ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.white,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 15,
-                                  vertical: 5,
-                                ),
-                                child: TextField(
-                                  controller: TextEditingController(text: note),
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    labelText: 'Note:',
-                                  ),
-                                  onChanged: (value) {
-                                    note = value;
-                                  },
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      downloadQrPdf();
-                                    },
-                                    child: const Icon(Icons.download,
-                                        color: Colors.white),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      shareQr();
-                                    },
-                                    child: const Icon(Icons.share,
-                                        color: Colors.white),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    onPressed: () {
+                                Expanded(
+                                  child: GestureDetector(
+                                    onDoubleTap: () {
                                       showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AlertDialog(
-                                            title: const Text(
-                                                'Are you sure delete the QR code?'),
+                                            title: const Text('Edit Title'),
+                                            content: TextField(
+                                              controller: TextEditingController(
+                                                  text: title),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  title = value;
+                                                });
+                                              },
+                                            ),
                                             actions: <Widget>[
                                               TextButton(
-                                                onPressed: () {
-                                                  deleteQR();
-                                                  Navigator.of(context).pop();
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text('Delete'),
-                                              ),
-                                              TextButton(
+                                                child: const Text('Save'),
                                                 onPressed: () {
                                                   Navigator.of(context).pop();
                                                 },
-                                                child: const Text('Cancel'),
                                               ),
                                             ],
                                           );
                                         },
                                       );
                                     },
-                                    child: const Icon(Icons.delete,
-                                        color: Colors.white),
+                                    child: Text(
+                                      title,
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                          letterSpacing: 1),
+                                    ),
                                   ),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            width: 200,
-                            height: 48,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                              ),
-                              onPressed: () {
-                                updateQRInformation();
-                                Navigator.pop(context);
-                              },
-                              child: const Text(
-                                "SAVE",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1),
-                              ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                          SwitchListTile(
+                            inactiveTrackColor: Colors.red.shade100,
+                            inactiveThumbColor: Colors.red,
+                            value: isActive,
+                            activeColor: Colors.green,
+                            activeTrackColor: Colors.green.shade100,
+                            onChanged: (value) {
+                              setState(() {
+                                isActive = value;
+                              });
+                            },
+                            title: const Text(
+                              'Active',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1),
+                            ),
+                          ),
+                          SwitchListTile(
+                            inactiveTrackColor: Colors.red.shade100,
+                            inactiveThumbColor: Colors.red,
+                            value: shareEmail,
+                            activeColor: Colors.green,
+                            activeTrackColor: Colors.green.shade100,
+                            onChanged: (value) {
+                              setState(() {
+                                shareEmail = value;
+                              });
+                            },
+                            title: const Text(
+                              'Share Email',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1),
+                            ),
+                          ),
+                          SwitchListTile(
+                            inactiveTrackColor: Colors.red.shade100,
+                            inactiveThumbColor: Colors.red,
+                            value: sharePhone,
+                            activeColor: Colors.green,
+                            activeTrackColor: Colors.green.shade100,
+                            onChanged: (value) {
+                              setState(() {
+                                sharePhone = value;
+                              });
+                            },
+                            title: const Text(
+                              'Share Phone',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1),
+                            ),
+                          ),
+                          SwitchListTile(
+                            inactiveTrackColor: Colors.red.shade100,
+                            inactiveThumbColor: Colors.red,
+                            value: shareNote,
+                            activeColor: Colors.green,
+                            activeTrackColor: Colors.green.shade100,
+                            onChanged: (value) {
+                              setState(() {
+                                shareNote = value;
+                              });
+                            },
+                            title: const Text(
+                              'Share Note',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1),
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.white,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 15,
+                              vertical: 5,
+                            ),
+                            child: TextField(
+                              controller: TextEditingController(text: note),
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                labelText: 'Note:',
+                              ),
+                              onChanged: (value) {
+                                note = value;
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  downloadQrPdf();
+                                },
+                                child: const Icon(Icons.download,
+                                    color: Colors.white),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  shareQr();
+                                },
+                                child: const Icon(Icons.share,
+                                    color: Colors.white),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                            'Are you sure delete the QR code?'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () {
+                                              deleteQR();
+                                              Navigator.of(context).pop();
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Delete'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text('Cancel'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                child: const Icon(Icons.delete,
+                                    color: Colors.white),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: 200,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                          ),
+                          onPressed: () {
+                            updateQRInformation();
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            "SAVE",
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 
   Future<void> getQRResult() async {
     try {
-      _qrInformation = await ApiHandler.getQRInformation(widget.qrId);
+      _qrInformation = await QrService.getQRInformation(widget.qrId);
       setState(() {
         title = _qrInformation.title;
         shareEmail = _qrInformation.shareEmail;
@@ -351,7 +346,7 @@ class _QRViewingScreenState extends State<QRViewingScreen> {
 
   Future<void> updateQRInformation() async {
     try {
-      await ApiHandler.updateQRInformation(QR(
+      await QrService.updateQRInformation(QR(
         qrId: _qrInformation.qrId,
         userId: _qrInformation.userId,
         title: title,
@@ -373,7 +368,7 @@ class _QRViewingScreenState extends State<QRViewingScreen> {
 
   Future<void> deleteQR() async {
     try {
-      await ApiHandler.deleteQR(widget.qrId);
+      await QrService.deleteQR(widget.qrId);
     } catch (e) {
     } finally {
       setState(() {

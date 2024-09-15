@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thisconnect/models/user_model.dart';
 import 'package:thisconnect/screens/main_screen.dart';
 import 'package:thisconnect/screens/onboarding_screen.dart';
-import 'package:thisconnect/services/pref_handler.dart';
+import 'package:thisconnect/services/pref_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -85,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> getPrefUserInformation() async {
-    var temp = await PrefHandler.getPrefUserInformation();
+    var temp = await PrefService.getPrefUserInformation();
     if (temp != null) {
       setState(() {
         user = temp;
