@@ -50,6 +50,7 @@ dependencies:
   share_plus: ^10.0.0
   image_picker: ^1.1.2
   file_picker: ^8.0.7
+  flutter_sound: ^9.11.2
 
 dev_dependencies:
   flutter_test:

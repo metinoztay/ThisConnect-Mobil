@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:thisconnect/utils/appTheme.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ChatTypeMessageWidget extends StatefulWidget {
   final TextEditingController messageTextController;
@@ -21,6 +24,124 @@ class ChatTypeMessageWidget extends StatefulWidget {
 
 class _ChatTypeMessageWidgetState extends State<ChatTypeMessageWidget> {
   File? selectedFile;
+  FlutterSoundRecorder? _recorder;
+  FlutterSoundPlayer? _player;
+  bool _isRecording = false;
+  bool _isPlaying = false;
+  String? _recordedFilePath;
+  Timer? _timer;
+  int _recordDuration = 0;
+  Duration _currentPosition = Duration();
+  Duration _audioDuration = Duration();
+  StreamSubscription? _progressSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _recorder = FlutterSoundRecorder();
+    _player = FlutterSoundPlayer();
+    _openRecorder();
+  }
+
+  Future<void> _openPlayer() async {
+    await _player!.openPlayer();
+    _player!.setSubscriptionDuration(Duration(milliseconds: 10));
+  }
+
+  Future<void> _openRecorder() async {
+    var status = await Permission.microphone.status;
+
+    if (status.isDenied || status.isRestricted) {
+      status = await Permission.microphone.request();
+    }
+
+    if (status.isGranted) {
+      await _recorder!.openRecorder();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Mikrofon izni verilmedi."),
+        ),
+      );
+    }
+  }
+
+  Future<void> startRecording() async {
+    if (await Permission.microphone.isGranted) {
+      setState(() {
+        _isRecording = true;
+        _recordDuration = 0;
+      });
+
+      _recordedFilePath = '/storage/emulated/0/Download/sound.aac';
+      await _recorder!.startRecorder(
+        toFile: _recordedFilePath,
+        codec: Codec.aacADTS,
+      );
+
+      _timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+        setState(() {
+          _recordDuration++;
+        });
+      });
+    } else {
+      await Permission.microphone.request();
+    }
+  }
+
+  Future<void> stopRecording() async {
+    if (_isRecording) {
+      await _recorder!.stopRecorder();
+      _timer?.cancel();
+      setState(() {
+        _isRecording = false;
+        selectedFile = File(_recordedFilePath!);
+      });
+    }
+  }
+
+  Future<void> playAudio() async {
+    if (_player!.isStopped) {
+      await _openPlayer();
+
+      _progressSubscription = _player!.onProgress!.listen((event) {
+        setState(() {
+          _currentPosition = event.position;
+          _audioDuration = event.duration;
+        });
+      });
+
+      await _player!.startPlayer(
+        fromURI: selectedFile!.path,
+        codec: Codec.aacADTS,
+        whenFinished: () {
+          setState(() {
+            _isPlaying = false;
+            _currentPosition = Duration(); // Sıfırlama
+          });
+          _progressSubscription?.cancel();
+        },
+      );
+
+      setState(() {
+        _isPlaying = true;
+      });
+    } else {
+      stopPlaying();
+    }
+  }
+
+  Future<void> stopPlaying() async {
+    if (_isPlaying) {
+      await _player!.stopPlayer();
+      setState(() {
+        _isPlaying = false;
+      });
+      _progressSubscription?.cancel();
+      _currentPosition = Duration();
+      _audioDuration = Duration();
+    }
+  }
 
   Future<void> attachFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -29,9 +150,22 @@ class _ChatTypeMessageWidgetState extends State<ChatTypeMessageWidget> {
       setState(() {
         selectedFile = File(result.files.single.path!);
       });
-    } else {
-      // User canceled the picker
     }
+  }
+
+  @override
+  void dispose() {
+    _recorder!.closeRecorder();
+    _player!.closePlayer();
+    _timer?.cancel();
+    _progressSubscription?.cancel();
+    super.dispose();
+  }
+
+  String formatDuration(Duration duration) {
+    int minutes = duration.inMinutes;
+    int seconds = duration.inSeconds % 60;
+    return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
 
   @override
@@ -45,20 +179,55 @@ class _ChatTypeMessageWidgetState extends State<ChatTypeMessageWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "File: ${selectedFile!.path.split('/').last}",
-                  style: TextStyle(color: AppTheme.gradientColorFrom),
-                ),
+                if (selectedFile!.path.endsWith('.aac'))
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                        onPressed: playAudio,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        "Voice Record",
+                        style: TextStyle(
+                            fontSize: 16, color: AppTheme.gradientColorFrom),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        "${formatDuration(_currentPosition)} / ${formatDuration(_audioDuration)}",
+                        style: TextStyle(
+                            fontSize: 16, color: AppTheme.gradientColorFrom),
+                      ),
+                    ],
+                  )
+                else
+                  Text(
+                    "File: ${selectedFile!.path.split('/').last}",
+                    style: TextStyle(color: AppTheme.gradientColorFrom),
+                  ),
                 IconButton(
                   icon: Icon(Icons.close, color: Colors.red),
                   onPressed: () {
                     setState(() {
-                      selectedFile = null; // Dosya seçimini iptal et
+                      selectedFile = null;
+                      stopPlaying();
                     });
                   },
                 ),
               ],
             ),
+          ),
+        if (_isRecording)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.mic, color: Colors.red, size: 30),
+              SizedBox(width: 10),
+              Text(
+                "${_recordDuration ~/ 60}:${(_recordDuration % 60).toString().padLeft(2, '0')}",
+                style: TextStyle(fontSize: 18, color: Colors.red),
+              ),
+            ],
           ),
         ConstrainedBox(
           constraints: BoxConstraints(
@@ -118,11 +287,12 @@ class _ChatTypeMessageWidgetState extends State<ChatTypeMessageWidget> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => null,
+                    onLongPress: () => startRecording(),
+                    onLongPressUp: () => stopRecording(),
                     child: Padding(
                       padding: EdgeInsets.only(right: 12),
                       child: Icon(
-                        Icons.mic,
+                        _isRecording ? Icons.mic_off : Icons.mic,
                         color: AppTheme.gradientColorFrom,
                       ),
                     ),
@@ -132,7 +302,7 @@ class _ChatTypeMessageWidgetState extends State<ChatTypeMessageWidget> {
                     onTap: () => {
                       widget.submitMessageFunction(selectedFile),
                       setState(() {
-                        selectedFile = null; // Dosya seçimini iptal et
+                        selectedFile = null;
                       })
                     },
                     child: Padding(
