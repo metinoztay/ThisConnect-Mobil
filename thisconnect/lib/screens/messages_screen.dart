@@ -1,3 +1,4 @@
+import 'package:signalr_core/signalr_core.dart';
 import 'package:thisconnect/models/chatroom_model.dart';
 import 'package:thisconnect/models/message_model.dart';
 import 'package:thisconnect/models/user_model.dart';
@@ -22,6 +23,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
     super.initState();
     UserService.updateLastSeenAt(widget.user.userId);
     getChatRoomsByParticipant(widget.user.userId);
+    openSignalRConnection();
+  }
+
+  void dispose() {
+    closeSignalRConnection();
+    super.dispose();
   }
 
   @override
@@ -111,6 +118,37 @@ class _MessagesScreenState extends State<MessagesScreen> {
         ),
       ),
     );
+  }
+
+  final connection = HubConnectionBuilder()
+      .withUrl(
+        'http://thisconnect.runasp.net/chathub',
+        HttpConnectionOptions(
+          logging: (level, message) => print(message),
+          transport: HttpTransportType.webSockets,
+          skipNegotiation: true,
+        ),
+      )
+      .build();
+
+  Future<void> openSignalRConnection() async {
+    await connection.start();
+    connection.on('FetchMessagesList', (message) {
+      _FetchMessageList();
+    });
+
+    await connection
+        .invoke('JoinMessageListListener', args: [widget.user.userId]);
+  }
+
+  Future<void> closeSignalRConnection() async {
+    await connection
+        .invoke('LeaveMessageListListener', args: [widget.user.userId]);
+    await connection.stop();
+  }
+
+  Future<void> _FetchMessageList() async {
+    getChatRoomsByParticipant(widget.user.userId);
   }
 
   Future<void> getChatRoomsByParticipant(String userId) async {
