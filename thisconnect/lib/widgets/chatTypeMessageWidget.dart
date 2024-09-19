@@ -72,8 +72,10 @@ class _ChatTypeMessageWidgetState extends State<ChatTypeMessageWidget> {
         _isRecording = true;
         _recordDuration = 0;
       });
-
-      _recordedFilePath = '/storage/emulated/0/Download/sound.aac';
+      DateTime now = DateTime.now();
+      String formattedDate =
+          "${now.year}_${now.month}_${now.day}_${now.hour}_${now.minute}_${now.second}";
+      _recordedFilePath = '/storage/emulated/0/Download/$formattedDate.aac';
       await _recorder!.startRecorder(
         toFile: _recordedFilePath,
         codec: Codec.aacADTS,

@@ -80,7 +80,7 @@ class UploadService {
     }
   }
 
-  static Future<bool> downloadFile(String attachmentId) async {
+  static Future<File?> downloadFile(String attachmentId) async {
     Attachment attachment = await getAttachmentById(attachmentId);
     final response = await http.get(Uri.parse(attachment.fileUrl));
 
@@ -89,11 +89,11 @@ class UploadService {
       final file = File('${directory!.path}/${attachment.fileName}');
       await file.writeAsBytes(response.bodyBytes);
       print('Dosya indirildi: ${file.path}');
-      await OpenFile.open(file.path);
-      return true;
+      //await OpenFile.open(file.path);
+      return file;
     } else {
       print('Dosya indirilemedi: ${response.statusCode}');
-      return false;
+      return null;
     }
   }
 }

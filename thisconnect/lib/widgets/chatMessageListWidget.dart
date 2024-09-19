@@ -1,5 +1,10 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:flutter_sound/public/flutter_sound_player.dart';
+import 'package:open_file/open_file.dart';
 import 'package:thisconnect/models/attachment_model.dart';
 import 'package:thisconnect/models/message_model.dart';
 import 'package:thisconnect/services/upload_service.dart';
@@ -28,9 +33,7 @@ Widget chatItemWidget(Message e, String currentUserId, BuildContext context) {
   final isMe = e.senderUserId == currentUserId;
 
   final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
-
   final color = isMe ? Colors.green : Colors.blue;
-
   final textColor = Colors.white;
 
   return Column(
@@ -50,36 +53,50 @@ Widget chatItemWidget(Message e, String currentUserId, BuildContext context) {
           child: e.attachmentId != null
               ? Row(
                   children: [
-                    Icon(Icons.insert_drive_file),
+                    FutureBuilder<IconData>(
+                        future: _getFileIcon(e.attachmentId!),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return Icon(snapshot.data);
+                          } else {
+                            return Container();
+                          }
+                        }),
                     SizedBox(width: 8),
                     Text(
                       e.content,
                       style: TextStyle(color: textColor),
                     ),
                     SizedBox(width: 8),
-                    e.attachmentId != null
-                        ? FutureBuilder<String>(
-                            future: getFileName(e.attachmentId!),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return InkWell(
-                                  onTap: () async {
-                                    try {
-                                      await UploadService.downloadFile(
-                                          e.attachmentId!);
-                                    } on Exception catch (e) {
-                                      print('Error downloading file: $e');
-                                    }
-                                  },
-                                  child: snapshot.hasData
-                                      ? Icon(Icons.download)
-                                      : CircularProgressIndicator(),
-                                );
-                              } else {
-                                return CircularProgressIndicator();
-                              }
-                            })
-                        : Container(),
+                    FutureBuilder<String>(
+                        future: getFileName(e.attachmentId!),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return InkWell(
+                              onTap: () async {
+                                try {
+                                  File? file = await UploadService.downloadFile(
+                                      e.attachmentId!);
+                                  if (_isAudioFile(file!.path)) {
+                                    // Oynatıcıyı başlatmak için bir metod çağırın
+                                    playAudio(file);
+                                  } else {
+                                    OpenFile.open(file.path);
+                                  }
+                                } on Exception catch (e) {
+                                  print('Error downloading file: $e');
+                                }
+                              },
+                              child: snapshot.data != null
+                                  ? _isAudioFile(snapshot.data)
+                                      ? Icon(Icons.play_arrow)
+                                      : Icon(Icons.download)
+                                  : CircularProgressIndicator(),
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        }),
                   ],
                 )
               : Text(
@@ -90,6 +107,67 @@ Widget chatItemWidget(Message e, String currentUserId, BuildContext context) {
       ),
     ],
   );
+}
+
+File? selectedFile;
+FlutterSoundPlayer? _player;
+bool _isRecording = false;
+bool _isPlaying = false;
+String? _recordedFilePath;
+int _recordDuration = 0;
+Duration _currentPosition = Duration();
+Duration _audioDuration = Duration();
+StreamSubscription? _progressSubscription;
+
+Future<void> _openPlayer() async {
+  await _player!.openPlayer();
+  _player!.setSubscriptionDuration(Duration(milliseconds: 10));
+}
+
+Future<void> playAudio(File audio) async {
+  _player = FlutterSoundPlayer();
+  if (_player!.isStopped) {
+    await _openPlayer();
+
+    _progressSubscription = _player!.onProgress!.listen((event) {});
+
+    await _player!.startPlayer(
+      fromURI: audio.path,
+      codec: Codec.aacADTS,
+      whenFinished: () {
+        _progressSubscription?.cancel();
+      },
+    );
+  } else {
+    stopPlaying();
+  }
+}
+
+Future<void> stopPlaying() async {
+  if (_isPlaying) {
+    await _player!.stopPlayer();
+
+    _progressSubscription?.cancel();
+    _currentPosition = Duration();
+    _audioDuration = Duration();
+  }
+}
+
+Future<IconData> _getFileIcon(String attachmentId) async {
+  Attachment attach = await UploadService.getAttachmentById(attachmentId);
+  final fileExtension = attach.fileName.split('.').last.toLowerCase();
+  if (fileExtension == 'aac') {
+    return Icons.audiotrack;
+  }
+  return Icons.insert_drive_file;
+}
+
+bool _isAudioFile(String? fileName) {
+  if (fileName != null) {
+    final fileExtension = fileName.split('.').last.toLowerCase();
+    return fileExtension == 'aac';
+  }
+  return false;
 }
 
 Future<String> getFileName(String attachmentId) async {
